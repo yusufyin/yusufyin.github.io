@@ -1,4 +1,3 @@
- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,9 +76,36 @@
             0% { transform: translateY(0) rotate(0deg); }
             100% { transform: translateY(-120vh) rotate(360deg); }
         }
+
+         /* 新增音乐控制按钮 */
+        .music-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.3);
+        }
+
+
     </style>
 </head>
 <body>
+    <!-- 新增音乐控制按钮 -->
+    <div class="music-control" onclick="toggleMusic()">🎵</div>
+
     <div class="header">
         <h1>🌟 Happy Birthday Inomjon🌌</h1>
         <div class="message">
@@ -99,6 +125,12 @@
         <div class="twinkle" style="top:50%;left:50%"></div> <!-- 参宿二 -->
         <div class="twinkle" style="top:55%;left:60%"></div> <!-- 参宿三 -->
     </div>
+
+    <!-- 新增音频标签（请替换你的音乐文件链接） -->
+    <audio id="bgMusic" loop>
+        <source src="https://example.com/happy-birthday.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放
+    </audio>
 
     <script>
         // 动态生成飘升元素
@@ -123,6 +155,29 @@
             setTimeout(() => star.remove(), 2000);
         }
         setInterval(createTwinkle, 300);
+
+        // 新增音乐控制功能
+        const bgMusic = document.getElementById('bgMusic');
+        let isPlaying = false;
+
+        // 自动播放处理（需要用户交互后触发）
+        document.body.addEventListener('click', function initMusic() {
+            if (!isPlaying) {
+                bgMusic.play();
+                isPlaying = true;
+            }
+            document.body.removeEventListener('click', initMusic);
+        });
+
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                isPlaying = true;
+            } else {
+                bgMusic.pause();
+                isPlaying = false;
+            }
+        }
     </script>
 </body>
 </html>
