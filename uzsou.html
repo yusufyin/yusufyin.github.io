@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>乌兹别克语词典</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        #searchBox {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 4px;
+        }
+        .result-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .word {
+            color: #4CAF50;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .definition {
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <h2>乌兹别克语词典</h2>
+    <input type="text" id="searchBox" placeholder="输入要搜索的单词..." autofocus>
+    <div id="results"></div>
+
+    <script>
+        // 加载词典数据
+        let lexicon = {};
+
+        fetch('lexicon.json')
+            .then(response => response.json())
+            .then(data => {
+                lexicon = data;
+            })
+            .catch(error => console.error('加载词典失败:', error));
+
+        // 搜索功能
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.trim().toUpperCase();
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
+
+            if (!searchTerm) return;
+
+            const matches = Object.keys(lexicon)
+                .filter(word => word.includes(searchTerm))
+                .sort((a, b) => a.localeCompare(b));
+
+            if (matches.length === 0) {
+                resultsContainer.innerHTML = '<div class="result-item">未找到匹配结果</div>';
+                return;
+            }
+
+            matches.forEach(word => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `
+                    <div class="word">${word}</div>
+                    <div class="definition">${lexicon[word]}</div>
+                `;
+                resultsContainer.appendChild(item);
+            });
+        });
+    </script>
+</body>
+</html>
