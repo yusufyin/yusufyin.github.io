@@ -2,83 +2,162 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>乌兹别克语词典</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
+        :root {
+            --primary-color: #4CAF50;
+            --background-color: #f5f5f5;
         }
+
+        /* 移动端优先的响应式布局 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: var(--background-color);
+            -webkit-tap-highlight-color: transparent;
+        }
+
         #searchBox {
             width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            margin-bottom: 20px;
-            border: 2px solid #4CAF50;
-            border-radius: 4px;
-        }
-        .result-item {
-            margin-bottom: 20px;
             padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f9f9f9;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        .result-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+
+        .result-item:active {
+            transform: scale(0.98);
+        }
+
         .word {
-            color: #4CAF50;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 8px;
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
+
         .definition {
             white-space: pre-wrap;
             line-height: 1.6;
+            font-size: 15px;
+            color: #444;
+        }
+
+        /* 移动端专属优化 */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            #searchBox {
+                padding: 12px;
+                font-size: 15px;
+            }
+            
+            .result-item {
+                padding: 12px;
+            }
+            
+            .word {
+                font-size: 17px;
+            }
+            
+            .definition {
+                font-size: 14px;
+            }
+        }
+
+        /* 防止iOS点击延迟 */
+        a, button, input, .result-item {
+            touch-action: manipulation;
+        }
+
+        /* 虚拟键盘优化 */
+        @media (max-height: 500px) and (orientation: landscape) {
+            #searchBox {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                background: white;
+            }
         }
     </style>
 </head>
 <body>
-    <h2>乌兹别克语词典</h2>
-    <input type="text" id="searchBox" placeholder="输入要搜索的单词..." autofocus>
+    <h2 style="color: #333; margin: 15px 0; font-size: 20px;">乌兹别克语词典</h2>
+    <input type="search" id="searchBox" placeholder="🔍 输入要搜索的单词..." autocapitalize="off" autocomplete="off">
     <div id="results"></div>
 
     <script>
+        // 防抖处理优化移动端性能
+        let searchTimeout;
+        const searchInput = document.getElementById('searchBox');
+
+        // 移动端触摸反馈优化
+        document.body.addEventListener('touchstart', function() {}, false);
+
         // 加载词典数据
         let lexicon = {};
-
         fetch('lexicon.json')
-            .then(response => response.json())
-            .then(data => {
-                lexicon = data;
-            })
-            .catch(error => console.error('加载词典失败:', error));
+            .then(r => r.json())
+            .then(data => lexicon = data)
+            .catch(console.error);
 
-        // 搜索功能
-        document.getElementById('searchBox').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.trim().toUpperCase();
-            const resultsContainer = document.getElementById('results');
-            resultsContainer.innerHTML = '';
+        // 优化后的搜索函数
+        function performSearch() {
+            const term = searchInput.value.trim().toUpperCase();
+            const container = document.getElementById('results');
+            container.innerHTML = '';
 
-            if (!searchTerm) return;
+            if (!term) return;
 
             const matches = Object.keys(lexicon)
-                .filter(word => word.includes(searchTerm))
+                .filter(word => word.includes(term))
                 .sort((a, b) => a.localeCompare(b));
 
-            if (matches.length === 0) {
-                resultsContainer.innerHTML = '<div class="result-item">未找到匹配结果</div>';
+            if (!matches.length) {
+                container.innerHTML = '<div class="result-item">未找到相关结果</div>';
                 return;
             }
 
-            matches.forEach(word => {
-                const item = document.createElement('div');
-                item.className = 'result-item';
-                item.innerHTML = `
+            matches.slice(0, 50).forEach(word => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `
                     <div class="word">${word}</div>
                     <div class="definition">${lexicon[word]}</div>
                 `;
-                resultsContainer.appendChild(item);
+                container.appendChild(div);
             });
+        }
+
+        // 优化输入事件处理
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(performSearch, 300);
+        });
+
+        // 回车键立即搜索
+        searchInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                performSearch();
+            }
         });
     </script>
 </body>
